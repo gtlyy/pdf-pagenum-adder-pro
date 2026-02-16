@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web版pdf页码添加工具</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Web版pdf页码添加工具</h1>
+        
+        <div class="upload-section">
+            <input type="file" id="fileInput" accept=".pdf">
+            <div class="drop-area" id="dropArea">
+                <p>拖拽PDF文件到此处或点击选择PDF文件</p>
+            </div>
+        </div>
+        
+        <div class="controls" id="controls" style="display: none;">
+            <div class="settings-panel">
+                <h2>页码设置</h2>
+                <div class="settings">
+                <div class="setting-group">
+                    <label for="positionSelect">页码位置：</label>
+                    <select id="positionSelect">
+                        <option value="bottom-right">底部右侧</option>
+                        <option value="bottom-left">底部左侧</option>
+                        <option value="bottom-center">底部居中</option>
+                        <option value="top-right">顶部右侧</option>
+                        <option value="top-left">顶部左侧</option>
+                        <option value="top-center">顶部居中</option>
+                        <option value="custom">自定义百分比位置</option>
+                    </select>
+                </div>
+                
+                <div class="setting-group custom-position" id="customPositionGroup" style="display: none;">
+                    <label>自定义位置：</label>
+                    <div class="custom-position-inputs">
+                        <span>X轴位置:</span>
+                        <input type="range" id="customX" min="0" max="100" value="50">
+                        <span id="customXValue">50%</span>
+                        <span>Y轴位置:</span>
+                        <input type="range" id="customY" min="0" max="100" value="50">
+                        <span id="customYValue">50%</span>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="pageNumStart">起始页码：</label>
+                    <input type="number" id="pageNumStart" min="1" value="1">
+                </div>
+                
+                <div class="setting-group">
+                    <label for="pageNumFormat">页码格式：</label>
+                    <select id="pageNumFormat">
+                        <option value="1,2,3">数字 (1, 2, 3...)</option>
+                        <option value="i,ii,iii">小写罗马数字 (i, ii, iii...)</option>
+                        <option value="I,II,III">大写罗马数字 (I, II, III...)</option>
+                        <option value="a,b,c">小写字母 (a, b, c...)</option>
+                        <option value="A,B,C">大写字母 (A, B, C...)</option>
+                        <option value="-1-">破折号格式 (-1-, -2-, -3...)</option>
+                        <option value="1/100">分数格式 (1/100, 2/100, 3/100...)</option>
+                        <option value="Page 1">页面格式 (Page 1, Page 2, Page 3...)</option>
+                    </select>
+                </div>
+                    
+                    <div class="setting-group">
+                        <label for="fontSize">字体大小：</label>
+                        <input type="range" id="fontSize" min="8" max="30" value="12">
+                        <span id="fontSizeValue">12</span>pt
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label for="fontColor">字体颜色：</label>
+                        <input type="color" id="fontColor" value="#000000">
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="firstPageCheckbox"> 首页也添加页码
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="preview-controls">
+                    <button id="previewBtn">生成预览</button>
+                    <div class="page-nav">
+                        <button id="prevPage">上一页</button>
+                        <span id="pageNumDisplay">1 / 1</span>
+                        <button id="nextPage">下一页</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <div class="preview-section">
+                    <h3>PDF信息</h3>
+                    <div id="pdfInfo"></div>
+                </div>
+                
+                <div class="buttons">
+                    <button id="addPageNumsBtn">添加页码到PDF</button>
+                    <button id="downloadBtn" style="display: none;">下载带页码的PDF</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section-full">
+            <h3>PDF预览</h3>
+            <div id="pdfPreviewContainer">
+                <div id="loadingIndicator" style="display: none; text-align: center; padding: 50px;">
+                    <p>正在加载预览...</p>
+                    <div class="spinner"></div>
+                </div>
+                <canvas id="pdfPreviewCanvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="progress" id="progress" style="display: none;">
+            <p>正在处理PDF...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            <p>Web版pdf页码添加工具 &copy; 2026 By gtlyy</p>
+        </footer>
+    </div>
+    
+    <!-- 本地PDF.js库 -->
+    <script src="lib/pdf.min.js"></script>
+    <script src="lib/pdf-lib.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
