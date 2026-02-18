@@ -74,8 +74,47 @@ h1 {
     font-weight: 500;
 }
 
-#fileInput {
+.mobile-file-btn {
     display: none;
+    background: linear-gradient(145deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+}
+
+.mobile-file-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+}
+
+@media (max-width: 768px) {
+    .mobile-file-btn {
+        display: block;
+    }
+}
+
+#fileInput {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    z-index: -1;
+}
+
+@media (max-width: 768px) {
+    #fileInput {
+        /* 在移动端保持可访问性 */
+        position: absolute;
+        left: -9999px;
+    }
 }
 
 .controls {

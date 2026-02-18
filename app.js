@@ -22,6 +22,7 @@ class PDFPageNumberAdder {
     initializeElements() {
         this.dropArea = document.getElementById('dropArea');
         this.fileInput = document.getElementById('fileInput');
+        this.mobileFileBtn = document.getElementById('mobileFileBtn');
         this.controls = document.getElementById('controls');
         this.pdfInfo = document.getElementById('pdfInfo');
         this.addPageNumsBtn = document.getElementById('addPageNumsBtn');
@@ -53,6 +54,19 @@ class PDFPageNumberAdder {
         
         // 初始化按钮状态
         this.updatePageNavButtons();
+        
+        // 移动端Chrome兼容性处理
+        this.setupMobileCompatibility();
+    }
+    
+    setupMobileCompatibility() {
+        // 检测Chrome移动端
+        const isChromeMobile = /Chrome/i.test(navigator.userAgent) && /Android|iPhone|iPad/i.test(navigator.userAgent);
+        if (isChromeMobile && this.mobileFileBtn) {
+            // 为Chrome移动端添加额外的样式
+            this.mobileFileBtn.style.touchAction = 'manipulation';
+            this.mobileFileBtn.style.webkitTapHighlightColor = 'transparent';
+        }
     }
     
     initializeCanvas() {
@@ -71,10 +85,24 @@ class PDFPageNumberAdder {
     }
     
     bindEvents() {
-        this.dropArea.addEventListener('click', () => {
-            console.log('Drop area clicked, triggering file input');
-            this.fileInput.click();
+        // 桌面端拖拽区域点击事件
+        this.dropArea.addEventListener('click', (e) => {
+            // 防止在移动端按钮上点击时触发
+            if (e.target !== this.mobileFileBtn && e.target !== this.fileInput) {
+                console.log('Drop area clicked, triggering file input');
+                this.triggerFileInput();
+            }
         });
+        
+        // 移动端文件选择按钮点击事件
+        if (this.mobileFileBtn) {
+            this.mobileFileBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Mobile file button clicked, triggering file input');
+                this.triggerFileInput();
+            });
+        }
 
         this.dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -111,6 +139,12 @@ class PDFPageNumberAdder {
                     this.showError('请选择PDF文件');
                 }
             }
+        });
+        
+        // 监听页码设置变化，以便实时更新预览
+        this.positionSelect.addEventListener('change', (e) => {
+            this.toggleCustomPosition(e.target.value === 'custom');
+            this.maybeUpdatePreview();
         });
         
         this.addPageNumsBtn.addEventListener('click', async () => {
@@ -176,8 +210,14 @@ class PDFPageNumberAdder {
         this.currentFile = file;
         
         try {
-            this.showProgress(true);
-            this.pdfBytes = await this.readFileAsync(file);
+            // 显示文件读取进度
+            this.showProgress(true, '正在读取文件...');
+            this.pdfBytes = await this.readFileAsync(file, (progress) => {
+                this.updateProgress(progress, '正在读取文件...');
+            });
+            
+            // 显示PDF处理进度
+            this.updateProgress(0, '正在处理PDF...');
             await this.loadPdfInfo();
             
             // 重置预览状态
@@ -197,11 +237,19 @@ class PDFPageNumberAdder {
         }
     }
     
-    readFileAsync(file) {
+    readFileAsync(file, onProgress = null) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result);
             reader.onerror = reject;
+            if (onProgress) {
+                reader.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const progress = (event.loaded / event.total) * 100;
+                        onProgress(progress);
+                    }
+                };
+            }
             reader.readAsArrayBuffer(file);
         });
     }
@@ -558,10 +606,26 @@ class PDFPageNumberAdder {
         return originalName.substring(0, dotIndex) + '_with_pagenums.pdf';
     }
     
-    showProgress(show) {
+    showProgress(show, message = null) {
         this.progress.style.display = show ? 'block' : 'none';
+        if (show && message) {
+            const progressText = this.progress.querySelector('p');
+            if (progressText) {
+                progressText.textContent = message;
+            }
+        }
         if (!show) {
             this.progressFill.style.width = '0%';
+        }
+    }
+    
+    updateProgress(percentage, message = null) {
+        this.progressFill.style.width = `${percentage}%`;
+        if (message) {
+            const progressText = this.progress.querySelector('p');
+            if (progressText) {
+                progressText.textContent = message;
+            }
         }
     }
     
@@ -571,6 +635,44 @@ class PDFPageNumberAdder {
     
     showError(message) {
         alert('错误: ' + message);
+    }
+    
+    triggerFileInput() {
+        // 检测是否为移动设备
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            // 移动端：确保文件输入在视口中短暂可见
+            const originalStyle = this.fileInput.style.cssText;
+            this.fileInput.style.position = 'fixed';
+            this.fileInput.style.top = '0';
+            this.fileInput.style.left = '0';
+            this.fileInput.style.width = '1px';
+            this.fileInput.style.height = '1px';
+            this.fileInput.style.opacity = '0.1';
+            this.fileInput.style.zIndex = '9999';
+            
+            // 触发点击
+            this.fileInput.click();
+            
+            // 恢复原始样式
+            setTimeout(() => {
+                this.fileInput.style.cssText = originalStyle;
+            }, 100);
+        } else {
+            // 桌面端：直接触发
+            this.fileInput.click();
+        }
+    }
+    
+    setupMobileCompatibility() {
+        // 检测Chrome移动端
+        const isChromeMobile = /Chrome/i.test(navigator.userAgent) && /Android|iPhone|iPad/i.test(navigator.userAgent);
+        if (isChromeMobile && this.mobileFileBtn) {
+            // 为Chrome移动端添加额外的样式
+            this.mobileFileBtn.style.touchAction = 'manipulation';
+            this.mobileFileBtn.style.webkitTapHighlightColor = 'transparent';
+        }
     }
     
     showSuccess(message) {
